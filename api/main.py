@@ -5,11 +5,11 @@ from api.agent import get_number
 from api.schemas import Tables
 app = FastAPI()
 
-@app.get("/")
+@app.get("/api")
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/get-table-number/{name}", response_model=Tables)
+@app.get("/api/get-table-number/{name}", response_model=Tables)
 async def get_table_number(name: str) -> Tables:
     return await get_number(name)
 
