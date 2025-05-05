@@ -37,9 +37,10 @@ async def get_number(name: str) -> Tables:
             instructions="""
             You query a notion database by title and return the results in a json array.
             Dont use filter_properties url parameter, make it None.
-            Use post-database-query, and pass {\"filter\": {\"property\": \"<property name from prompt\", \"rich_text\": {\"contains\": \"<value from prompt>\"}}} in the body.
+            Use just post-database-query tool, and pass {\"filter\": {\"property\": \"<property name from prompt\", \"rich_text\": {\"contains\": \"<value from prompt>\"}}} in the body.
             Print the results as a json array, don't print anything else
             extract just the keys under 'properties' from the tool original response and add it without changing them to the result
+            if 'results' key in response is empty, return an empty array
             """,
             mcp_servers=[server],
             model="gpt-4.1-nano"
@@ -73,7 +74,8 @@ async def get_number(name: str) -> Tables:
         prompt = f"""
         {uuid_and_schema}
         \nQuery the database by '{property_filter}' == '{name}'
-        Use only one tool call, don't try more than one query
+        If the query returns an empty array, and '{name}' is more than one word, try the exact same query just with the first word
+        Use only one tool call per string you try, don't try more than one query
         """
         result = await Runner.run(query_agent, input=prompt)
 
@@ -85,7 +87,8 @@ async def get_number(name: str) -> Tables:
             input=[
                 {
                     "role": "system",
-                    "content": "You are a great parser! Help parse the json response according to the provided type",
+                    "content": """You are a great parser! Help parse the json response according to the provided type.
+                    Make sure the names fields are text strings, not number strings""",
                 },
                 {"role": "user", "content": result.final_output},
             ],
