@@ -2,8 +2,8 @@ from fastapi import FastAPI
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.agent import get_number
-from api.schemas import Tables
+from agent import get_number
+from schemas import Tables
 app = FastAPI()
 
 app.add_middleware(

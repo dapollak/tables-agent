@@ -1,10 +1,10 @@
 import asyncio
-
+import os
 from agents import Agent, Runner
 from agents.mcp.server import MCPServerStdio
 from dotenv import load_dotenv
 from openai import OpenAI
-from api.schemas import Tables
+from schemas import Tables
 
 load_dotenv()
 
@@ -13,7 +13,7 @@ async def get_number(name: str) -> Tables:
         params={
             "command": "npx",
             "args": ["-y", "@notionhq/notion-mcp-server"],
-            "env": {"OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer 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\", \"Notion-Version\": \"2022-06-28\" }"}
+            "env": {"OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer " + os.getenv("NOTION_KEY") + "\", \"Notion-Version\": \"2022-06-28\" }"}
         }
     ) as server:
         ############## Agents ##############
