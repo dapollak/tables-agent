@@ -14,7 +14,8 @@ async def get_number(name: str) -> Tables:
             "command": "npx",
             "args": ["-y", "@notionhq/notion-mcp-server"],
             "env": {"OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer " + os.getenv("NOTION_KEY") + "\", \"Notion-Version\": \"2022-06-28\" }"}
-        }
+        },
+        client_session_timeout_seconds=10
     ) as server:
         ############## Agents ##############
         general_agent = Agent(
