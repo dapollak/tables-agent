@@ -4,7 +4,7 @@ from agents import Agent, Runner
 from agents.mcp.server import MCPServerStdio
 from dotenv import load_dotenv
 from openai import OpenAI
-from schemas import Tables
+from api.schemas import Tables
 
 load_dotenv()
 

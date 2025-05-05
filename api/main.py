@@ -1,8 +1,8 @@
 from fastapi import FastAPI
 import uvicorn
 
-from agent import get_number
-from schemas import Tables
+from api.agent import get_number
+from api.schemas import Tables
 app = FastAPI()
 
 @app.get("/")
