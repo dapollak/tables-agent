@@ -40,7 +40,12 @@ async def get_number(name: str) -> People:
             Dont use filter_properties url parameter, make it None.
             Use just post-database-query tool, and pass {\"filter\": {\"property\": \"<property name from prompt\", \"rich_text\": {\"contains\": \"<value from prompt>\"}}} in the body.
             Print the results as a json array, don't print anything else
-            extract just the keys under 'properties' from the tool original response and add it without changing them to the result
+            
+            extract just the keys under 'properties' from the tool original response and add it without changing their content
+            properties.<property_name>.rich_text[0].text.content for 'rich_text' property
+            properties.<property_name>.checkbox for 'boolean' property
+            properties.<property_name>.title[0].text.content for the title property
+            
             if 'results' key in response is empty, return an empty array
             """,
             mcp_servers=[server],
