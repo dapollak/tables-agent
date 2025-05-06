@@ -51,7 +51,7 @@ async def get_number(name: str) -> People:
             instructions="""
             Given a list of possible names and a target name, return the most similar name from the list.
             If there's no exact match, find similar by surname or last name.
-            Don't invent names, only return names from the given list.
+            Don't invent names, return names from the given list only!!.
             """,
             model="gpt-4.1-nano"
         )
