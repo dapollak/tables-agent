@@ -101,7 +101,11 @@ async def get_number(name: str) -> People:
 
         )
         print(response.output_parsed)
-        return [person for person in response.output_parsed.people if person.coming]
+        if response.output_parsed.people:
+            response.output_parsed.people = [person for person in response.output_parsed.people if person.coming]
+            return response.output_parsed
+        else:
+            return People(people=[])
 
 
 if __name__ == "__main__":
