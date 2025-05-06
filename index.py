@@ -3,7 +3,7 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
 from agent import get_number
-from schemas import Tables
+from schemas import People
 app = FastAPI()
 
 app.add_middleware(
@@ -18,8 +18,8 @@ app.add_middleware(
 async def root():
     return {"message": "Hello World"}
 
-@app.get("/api/get-table-number/{name}", response_model=Tables)
-async def get_table_number(name: str) -> Tables:
+@app.get("/api/get-table-number/{name}", response_model=People)
+async def get_table_number(name: str) -> People:
     return await get_number(name)
 
 if __name__ == "__main__":

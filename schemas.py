@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 
-class Table(BaseModel):
+class Person(BaseModel):
     name: str
     hebrew_name: str
     table_number: int
+    coming: bool
 
-class Tables(BaseModel):
-    tables: list[Table]
+class People(BaseModel):
+    people: list[Person]

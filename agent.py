@@ -4,11 +4,11 @@ from agents import Agent, Runner
 from agents.mcp.server import MCPServerStdio
 from dotenv import load_dotenv
 from openai import OpenAI
-from schemas import Tables
+from schemas import People
 
 load_dotenv()
 
-async def get_number(name: str) -> Tables:
+async def get_number(name: str) -> People:
     async with MCPServerStdio(
         params={
             "command": "npx",
@@ -79,6 +79,7 @@ async def get_number(name: str) -> Tables:
         Use only one tool call per string you try, don't try more than one query
         """
         result = await Runner.run(query_agent, input=prompt)
+        print(result.final_output)
 
         ############## Parse the response ##############
 
@@ -89,15 +90,18 @@ async def get_number(name: str) -> Tables:
                 {
                     "role": "system",
                     "content": """You are a great parser! Help parse the json response according to the provided type.
-                    Make sure the names fields are text strings, not number strings""",
+                    `name` should be a string matched to 'Name' from the json,
+                    `hebrew_name` should be a string matched to 'Hebrew name' from the json,
+                    `table_number` should be a number matched to 'Table' from the json,
+                    `coming` should be a boolean matched to 'Coming ?' from the json""",
                 },
                 {"role": "user", "content": result.final_output},
             ],
-            text_format=Tables
+            text_format=People
 
         )
         print(response.output_parsed)
-        return response.output_parsed
+        return [person for person in response.output_parsed.people if person.coming]
 
 
 if __name__ == "__main__":
