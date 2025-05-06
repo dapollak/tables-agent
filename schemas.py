@@ -8,3 +8,6 @@ class Person(BaseModel):
 
 class People(BaseModel):
     people: list[Person]
+
+class SimilarNames(BaseModel):
+    similar_names: list[str]

@@ -4,7 +4,8 @@ from agents import Agent, Runner
 from agents.mcp.server import MCPServerStdio
 from dotenv import load_dotenv
 from openai import OpenAI
-from schemas import People
+from schemas import People, SimilarNames
+from notion_utils import fetch_notion_titles
 
 load_dotenv()
 
@@ -18,27 +19,20 @@ async def get_number(name: str) -> People:
         client_session_timeout_seconds=10
     ) as server:
         ############## Agents ##############
-        general_agent = Agent(
-            name="General",
-            instructions="""You are a general agent that can answer questions and help with tasks.
-            """,
-            model="gpt-4.1-nano"
-        )
-
-        first_agent = Agent(
-            name="Notion Database uuid and schema fetcher",
-            instructions="""You use a tool to get the uuid and the schema of a notion database by its title.
-            """,
-            mcp_servers=[server],
-            model="gpt-4.1-nano"
-        )
+        # first_agent = Agent(
+        #     name="Notion Database uuid and schema fetcher",
+        #     instructions="""You use a tool to get the uuid and the schema of a notion database by its title.
+        #     """,
+        #     mcp_servers=[server],
+        #     model="gpt-4.1-nano"
+        # )
 
         query_agent = Agent(
             name="Notion Database query",
             instructions="""
             You query a notion database by title and return the results in a json array.
             Dont use filter_properties url parameter, make it None.
-            Use just post-database-query tool, and pass {\"filter\": {\"property\": \"<property name from prompt\", \"rich_text\": {\"contains\": \"<value from prompt>\"}}} in the body.
+            Use just post-database-query tool, and pass {\"filter\": {\"or\": [{\"property\": \"<property name from prompt>\", \"rich_text\": {\"contains\": \"<value from prompt>\"}}, ... for every value in the given list]}} in the body.
             Print the results as a json array, don't print anything else
             
             extract just the keys under 'properties' from the tool original response and add it without changing their content
@@ -51,6 +45,17 @@ async def get_number(name: str) -> People:
             mcp_servers=[server],
             model="gpt-4.1-nano"
         )
+
+        similarity_agent = Agent(
+            name="Name Similarity",
+            instructions="""
+            Given a list of possible names and a target name, return the most similar name from the list.
+            If there's no exact match, find similar by surname or last name.
+            Don't invent names, only return names from the given list.
+            """,
+            model="gpt-4.1-nano"
+        )
+        client = OpenAI()
 
         ############## Get Database UUID and Schema ##############
         # prompt = f"""
@@ -72,23 +77,35 @@ async def get_number(name: str) -> People:
             - Invitation Sent (checkbox)
         """
 
-        ############## Decide if hebrew name or name ##############
-        result = await Runner.run(general_agent, input=f"The string \"{name}\" contains hebrew characters ? print just single word - 'true' or 'false'")
-        property_filter = "Hebrew name" if result.final_output.lower() == "true" else "Name"
+        ############## Get Titles ##############
+        titles = fetch_notion_titles("1813fc02-0200-80d9-8f9a-c998f398da55", os.getenv("NOTION_KEY"))
+        print(titles)
 
-        ############## Query the database ##############
+        ############## Name Similarity ##############
+        result = await Runner.run(similarity_agent, input=f"""The list of names is '{titles}' and the target name is {name}""")
+        print(result.final_output)
+        response = client.responses.parse(
+            model="gpt-4.1-nano",
+            input=[
+                {
+                    "role": "user",
+                    "content": result.final_output,
+                }
+            ],
+            text_format=SimilarNames
+        )
+        print(response.output_parsed)
+
+        ############## Query Database ##############
         prompt = f"""
         {uuid_and_schema}
-        \nQuery the database by '{property_filter}' == '{name}'
-        If the query returns an empty array, and '{name}' is more than one word, try the exact same query just with the first word
-        Use only one tool call per string you try, don't try more than one query
+        \nQuery the database by 'Name' is one of the following: {response.output_parsed.similar_names}
+        Use only one tool call
         """
         result = await Runner.run(query_agent, input=prompt)
         print(result.final_output)
 
-        ############## Parse the response ##############
-
-        client = OpenAI()
+        ############## Parse Response ##############
         response = client.responses.parse(
             model="gpt-4.1-nano",
             input=[
@@ -112,6 +129,5 @@ async def get_number(name: str) -> People:
         else:
             return People(people=[])
 
-
 if __name__ == "__main__":
-    asyncio.run(get_number("Eli"))
+    asyncio.run(get_number("אהרון מנץ"))
