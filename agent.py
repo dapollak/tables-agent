@@ -82,7 +82,7 @@ async def get_number(name: str) -> People:
                     hey, given the name '{name}' and the following names list, I want to find similar names from the list according to the following rules:
                     1. Find full clear similar name
                     2. Only (!!) if there isn't obvious full clear similar name, try to find a name in the list that contains all words from the name
-                    3. Only (!!!) and only if there's no name that contains all words from the name, try to find clear similar name that contains some words from the name
+                    3. Only (!!!) and only if there's no name that contains all words from the name and there isn't obvious full clear similar name, try to find clear similar name that contains some words from the name
                     4. don't find phonetically or stylistically similarity.
 
                     Return just names that satisfy the criterias
