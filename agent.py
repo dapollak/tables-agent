@@ -81,17 +81,20 @@ async def get_number(name: str) -> People:
                     "content": f"""
                     hey, find all similar names in structure to '{name}' from the following list:
                     '{titles}'
-                    Return names only from the given list!!!
+                    The result should contain only names from the given list, don't invent names from outside the list
                     """,
                 }
             ],
         )
+        print(result.output_text)
         result = client.responses.parse(
             model="gpt-4.1-nano",
             input=[
                 {
                     "role": "user",
-                    "content": result.output_text,
+                    "content": f"""the following response is a names similarity response: "{result.output_text}"
+                    Extract the names that appear in the response
+                    """,
                 }
             ],
             text_format=SimilarNames
