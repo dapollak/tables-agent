@@ -79,9 +79,13 @@ async def get_number(name: str) -> People:
                 {
                     "role": "user",
                     "content": f"""
-                    hey, find all similar names in structure to '{name}' from the following list:
-                    '{titles}'
-                    The result should contain only names from the given list, don't invent names from outside the list
+                    hey, given the name '{name}' and the following names list, I want to find similar names from the list according to the following rules:
+                    1. Find full clear similar name
+                    2. Only (!!) if there isn't obvious full clear similar name, try to find clear similar name that contains some words from the name
+                    3. don't find phonetically or stylistically similarity.
+
+                    Return just names that satisfy the criterias
+                    {titles}
                     """,
                 }
             ],
