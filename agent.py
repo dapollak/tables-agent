@@ -46,15 +46,6 @@ async def get_number(name: str) -> People:
             model="gpt-4.1-nano"
         )
 
-        similarity_agent = Agent(
-            name="Name Similarity",
-            instructions="""
-            Given a list of possible names and a target name, return the most similar name from the list.
-            If there's no exact match, find similar by surname or last name.
-            Don't invent names, return names from the given list only!!.
-            """,
-            model="gpt-4.1-nano"
-        )
         client = OpenAI()
 
         ############## Get Database UUID and Schema ##############
@@ -82,24 +73,37 @@ async def get_number(name: str) -> People:
         print(titles)
 
         ############## Name Similarity ##############
-        result = await Runner.run(similarity_agent, input=f"""The list of names is '{titles}' and the target name is {name}""")
-        print(result.final_output)
-        response = client.responses.parse(
+        result = client.responses.create(
             model="gpt-4.1-nano",
             input=[
                 {
                     "role": "user",
-                    "content": result.final_output,
+                    "content": f"""
+                    hey, find all similar names in structure to '{name}' from the following list:
+                    '{titles}'
+                    Return names only from the given list!!!
+                    """,
+                }
+            ],
+        )
+        result = client.responses.parse(
+            model="gpt-4.1-nano",
+            input=[
+                {
+                    "role": "user",
+                    "content": result.output_text,
                 }
             ],
             text_format=SimilarNames
         )
-        print(response.output_parsed)
+        print(result.output_parsed)
+        if len(result.output_parsed.similar_names) == 0:
+            return People(people=[])
 
         ############## Query Database ##############
         prompt = f"""
         {uuid_and_schema}
-        \nQuery the database by 'Name' is one of the following: {response.output_parsed.similar_names}
+        \nQuery the database by 'Name' is one of the following: {result.output_parsed.similar_names}
         Use only one tool call
         """
         result = await Runner.run(query_agent, input=prompt)
